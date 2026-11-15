@@ -1,0 +1,80 @@
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="card card-corporativa p-3 bg-white border-start border-success border-4">
+      <span class="text-muted small">Asistencias Puntuales</span>
+      <h3 class="fw-bold text-success mb-0">{{ totalPuntuales }}</h3>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card card-corporativa p-3 bg-white border-start border-warning border-4">
+      <span class="text-muted small">Días con Tardanza</span>
+      <h3 class="fw-bold text-warning mb-0">{{ totalTardanzas }}</h3>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card card-corporativa p-3 bg-white border-start border-danger border-4">
+      <span class="text-muted small">Faltas (Entrada / Salida)</span>
+      <h3 class="fw-bold text-danger mb-0">{{ totalFaltas }}</h3>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card card-corporativa p-3 bg-white border-start border-primary border-4">
+      <span class="text-muted small">Minutos Tardanza Acum.</span>
+      <h3 class="fw-bold text-primary mb-0">{{ minutosTardanzaAcumulados }} min</h3>
+    </div>
+  </div>
+</div>
+
+<div class="card card-corporativa p-4 bg-white">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <h5 class="fw-bold mb-0"><i class="bi bi-calendar3 text-primary me-2"></i>Mi Historial de Asistencias</h5>
+    <div class="d-flex align-items-center gap-2">
+      <label class="small fw-semibold">Filtrar por estado:</label>
+      <select class="form-select form-select-sm w-auto" [(ngModel)]="filtroEstado">
+        <option value="TODOS">Todos los estados</option>
+        <option value="PUNTUAL">Puntual</option>
+        <option value="TARDANZA">Tardanza</option>
+        <option value="FALTA">Falta</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Fecha</th>
+          <th>Hora Ingreso</th>
+          <th>Hora Salida</th>
+          <th>Min. Tardanza</th>
+          <th>Estado</th>
+          <th>Observación del Sistema</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of registrosFiltrados">
+          <td class="fw-semibold">{{ item.fecha }}</td>
+          <td>{{ item.hora_ingreso || '--:--' }}</td>
+          <td>{{ item.hora_salida || '--:--' }}</td>
+          <td>{{ item.minutos_tardanza }} min</td>
+          <td>
+            <span class="badge"
+                  [ngClass]="{
+                    'bg-success': item.estado === 'PUNTUAL',
+                    'bg-warning text-dark': item.estado === 'TARDANZA',
+                    'bg-danger': item.estado === 'FALTA'
+                  }">
+              {{ item.estado }}
+            </span>
+          </td>
+          <td class="small text-muted">
+            {{ item.observacion_sistema || 'Jornada regular sin incidencias' }}
+          </td>
+        </tr>
+        <tr *ngIf="registrosFiltrados.length === 0">
+          <td colspan="6" class="text-center text-muted py-3">No se encontraron registros para el filtro seleccionado.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

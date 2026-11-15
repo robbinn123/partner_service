@@ -1,0 +1,409 @@
+<div class="card card-corporativa p-4 bg-white">
+  <div class="mb-3">
+    <h4 class="fw-bold mb-0"><i class="bi bi-person-workspace text-primary me-2"></i>Panel de Gestión de Operaciones</h4>
+    <p class="text-muted small mb-0">
+      {{ usuarioSesion?.rol === 'SUPERVISOR'
+         ? 'Vista de Supervisión: Asesores asignados a tu equipo.'
+         : 'Vista Global de Coordinación: Todos los supervisores y asesores.' }}
+    </p>
+  </div>
+
+  <div *ngIf="mensajeRRHH" class="alert alert-info py-2 small">{{ mensajeRRHH }}</div>
+
+  <ul class="nav nav-tabs mb-4">
+    <li class="nav-item">
+      <button class="nav-link fw-semibold" [class.active]="pestanaActiva === 'REPORTE'" (click)="pestanaActiva = 'REPORTE'">
+        1. Reporte Consolidado
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link fw-semibold" [class.active]="pestanaActiva === 'PROGRAMACION'" (click)="pestanaActiva = 'PROGRAMACION'">
+        2. Programación Semanal Rotativa
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link fw-semibold" [class.active]="pestanaActiva === 'PERMISOS'" (click)="pestanaActiva = 'PERMISOS'">
+        3. Evaluar Permisos
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link fw-semibold" [class.active]="pestanaActiva === 'INDICADORES'" (click)="pestanaActiva = 'INDICADORES'">
+        4. Control e Indicadores
+      </button>
+    </li>
+  </ul>
+
+  <div *ngIf="pestanaActiva === 'REPORTE'">
+    <div class="row g-2 mb-3">
+      <div class="col-md-4">
+        <label class="small fw-semibold">Filtrar por Área:</label>
+        <select class="form-select form-select-sm" [(ngModel)]="filtroArea">
+          <option value="TODAS">Todas las áreas</option>
+          <option value="Sistemas">Sistemas</option>
+          <option value="Operaciones">Operaciones</option>
+          <option value="Atención al Cliente">Atención al Cliente</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="small fw-semibold">Filtrar por Modalidad:</label>
+        <select class="form-select form-select-sm" [(ngModel)]="filtroJornada">
+          <option value="TODAS">Todas (Full / Semi / Part Time)</option>
+          <option value="FULL_TIME">FULL_TIME</option>
+          <option value="SEMI_FULL">SEMI_FULL</option>
+          <option value="PART_TIME">PART_TIME</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-hover align-middle small">
+        <thead class="table-light">
+          <tr>
+            <th>Colaborador</th>
+            <th>Área / Jornada</th>
+            <th>Fecha</th>
+            <th>Ingreso / Salida</th>
+            <th>Estado</th>
+            <th>Observación Sistema</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let a of asistenciasFiltradas">
+            <td class="fw-semibold">
+              {{ obtenerUsuario(a.usuario_id)?.nombres }} {{ obtenerUsuario(a.usuario_id)?.apellidos }}
+              <span class="badge bg-secondary ms-1">{{ obtenerUsuario(a.usuario_id)?.rol }}</span>
+              <div class="small text-muted fw-normal" *ngIf="usuarioSesion?.rol === 'COORDINADOR_OPERACIONES' && obtenerUsuario(a.usuario_id)?.supervisor_id">
+                Sup: {{ obtenerUsuario(obtenerUsuario(a.usuario_id)!.supervisor_id!)?.nombres }} {{ obtenerUsuario(obtenerUsuario(a.usuario_id)!.supervisor_id!)?.apellidos }}
+              </div>
+            </td>
+            <td>
+              {{ obtenerUsuario(a.usuario_id)?.area }}
+              <span class="badge bg-info text-dark ms-1">{{ obtenerUsuario(a.usuario_id)?.tipo_jornada }}</span>
+            </td>
+            <td>{{ a.fecha }}</td>
+            <td>{{ a.hora_ingreso || '--:--' }} / {{ a.hora_salida || '--:--' }}</td>
+            <td>
+              <span class="badge"
+                    [ngClass]="{
+                      'bg-success': a.estado === 'PUNTUAL',
+                      'bg-warning text-dark': a.estado === 'TARDANZA',
+                      'bg-danger': a.estado === 'FALTA'
+                    }">
+                {{ a.estado }}
+              </span>
+            </td>
+            <td class="text-muted">{{ a.observacion_sistema || 'OK' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div *ngIf="pestanaActiva === 'PROGRAMACION'">
+    <h6 class="fw-bold mb-2">Asignación Individual</h6>
+    <div class="row g-3 align-items-end bg-light p-3 rounded border mb-4">
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">
+          {{ usuarioSesion?.rol === 'SUPERVISOR' ? 'Asesor Asignado' : 'Asesor / Supervisor' }}
+        </label>
+        <select class="form-select" [(ngModel)]="progUsuarioId">
+          <option *ngFor="let u of usuariosGestionables" [value]="u.usuario_id">
+            {{ u.nombres }} {{ u.apellidos }} ({{ u.rol }} - {{ u.tipo_jornada }})
+          </option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Rango Horario Semanal</label>
+        <select class="form-select" [(ngModel)]="progRangoId">
+          <option *ngFor="let r of asistenciaService.rangosHorarios" [value]="r.rango_id">
+            {{ r.etiqueta }}
+          </option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small fw-semibold">Inicio Semana</label>
+        <input type="date" class="form-control" [(ngModel)]="progInicioSemana">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small fw-semibold">Día Descanso</label>
+        <select class="form-select" [(ngModel)]="progDiaDescanso">
+          <option [value]="1">Lunes</option>
+          <option [value]="2">Martes</option>
+          <option [value]="3">Miércoles</option>
+          <option [value]="4">Jueves</option>
+          <option [value]="5">Viernes</option>
+          <option [value]="6">Sábado</option>
+          <option [value]="7">Domingo</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button class="btn btn-primary w-100 fw-semibold" (click)="guardarProgramacion()">
+          Asignar Turno
+        </button>
+      </div>
+    </div>
+
+    <h6 class="fw-bold mb-2">Carga Masiva por Archivo (CSV)</h6>
+    <div class="bg-light p-3 rounded border">
+      <div class="row g-3 align-items-center">
+        <div class="col-md-4">
+          <button type="button" class="btn btn-outline-secondary btn-sm fw-semibold w-100" (click)="descargarPlantillaCSV()">
+            <i class="bi bi-file-earmark-spreadsheet me-1"></i>Descargar Plantilla CSV
+          </button>
+        </div>
+        <div class="col-md-8">
+          <input type="file" class="form-control form-control-sm" accept=".csv" (change)="cargarProgramacionMasiva($event)">
+        </div>
+      </div>
+
+      <div class="mt-3 pt-2 border-top small text-muted">
+        <strong>Referencia de columnas:</strong>
+        <code>dni</code> (8 dígitos) | <code>inicio_semana</code> (AAAA-MM-DD) |
+        <code>rango_id</code> (
+        <span *ngFor="let r of asistenciaService.rangosHorarios; let last = last">
+          <strong>{{ r.rango_id }}</strong>: {{ r.etiqueta }}<span *ngIf="!last">, </span>
+        </span>
+        ) | <code>dia_descanso</code> (1=Lun ... 7=Dom)
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="pestanaActiva === 'PERMISOS'">
+    <div class="table-responsive">
+      <table class="table align-middle small">
+        <thead class="table-light">
+          <tr>
+            <th>Colaborador</th>
+            <th>Tipo / Fechas</th>
+            <th>Motivo</th>
+            <th>Estado</th>
+            <th>Observación Operaciones (Obligatoria al rechazar)</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of permisosFiltrados">
+            <td class="fw-semibold">
+              {{ obtenerUsuario(p.usuario_id)?.nombres }} {{ obtenerUsuario(p.usuario_id)?.apellidos }}
+              <span class="badge bg-secondary ms-1">{{ obtenerUsuario(p.usuario_id)?.rol }}</span>
+            </td>
+            <td>
+              <strong>{{ p.tipo }}</strong><br>
+              <span class="text-muted">{{ p.fecha_inicio }} al {{ p.fecha_fin }}</span>
+            </td>
+            <td>{{ p.motivo }}</td>
+            <td>
+              <span class="badge"
+                    [ngClass]="{
+                      'bg-secondary': p.estado === 'PENDIENTE',
+                      'bg-success': p.estado === 'APROBADO',
+                      'bg-danger': p.estado === 'RECHAZADO'
+                    }">
+                {{ p.estado }}
+              </span>
+            </td>
+            <td>
+              <input type="text" class="form-control form-control-sm"
+                     [(ngModel)]="observaciones[p.permiso_id!]"
+                     [placeholder]="p.observacion_rrhh || 'Escribir observación...'">
+            </td>
+            <td>
+              <div class="d-flex gap-1">
+                <button class="btn btn-success btn-sm" (click)="decidirPermiso(p.permiso_id!, 'APROBADO')">Aprobar</button>
+                <button class="btn btn-outline-danger btn-sm" (click)="decidirPermiso(p.permiso_id!, 'RECHAZADO')">Rechazar</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div *ngIf="pestanaActiva === 'INDICADORES'">
+    <!-- Barra de Segmentadores y Botón de Descarga -->
+    <div class="row g-3 align-items-end bg-light p-3 rounded border mb-4">
+      <div class="col-md-4" *ngIf="usuarioSesion?.rol === 'COORDINADOR_OPERACIONES'">
+        <label class="form-label small fw-semibold mb-1">Segmentar por Supervisor:</label>
+        <select class="form-select form-select-sm"
+                [(ngModel)]="filtroIndSupervisorId"
+                (change)="onCambioSupervisorIndicador()">
+          <option value="TODOS">Todos los Supervisores</option>
+          <option *ngFor="let s of listaSupervisoresDisponibles" [value]="s.usuario_id">
+            {{ s.nombres }} {{ s.apellidos }} ({{ s.area }})
+          </option>
+        </select>
+      </div>
+
+      <div [ngClass]="usuarioSesion?.rol === 'COORDINADOR_OPERACIONES' ? 'col-md-4' : 'col-md-8'">
+        <label class="form-label small fw-semibold mb-1">Segmentar por Asesor:</label>
+        <select class="form-select form-select-sm" [(ngModel)]="filtroIndAsesorId">
+          <option value="TODOS">Todos los Asesores</option>
+          <option *ngFor="let a of listaAsesoresDisponibles" [value]="a.usuario_id">
+            {{ a.nombres }} {{ a.apellidos }} ({{ a.tipo_jornada }})
+          </option>
+        </select>
+      </div>
+
+      <div class="col-md-4 text-md-end">
+        <button type="button" class="btn btn-success btn-sm fw-semibold w-100" (click)="descargarIndicadoresCSV()">
+          <i class="bi bi-download me-1"></i>Descargar Data (CSV)
+        </button>
+      </div>
+    </div>
+
+    <!-- BLOQUE 1: ACUMULADO SUPERVISORES (Solo visible para Coordinador de Operaciones) -->
+    <div class="mb-4" *ngIf="usuarioSesion?.rol === 'COORDINADOR_OPERACIONES'">
+      <h6 class="fw-bold text-primary mb-2">
+        <i class="bi bi-person-badge me-1"></i>Acumulado de Supervisores
+      </h6>
+
+      <div class="row g-2 mb-3">
+        <div class="col-md-3 col-6">
+          <div class="p-2 px-3 rounded border bg-light">
+            <div class="small text-muted">Puntualidad Sup.</div>
+            <div class="fs-5 fw-bold text-success">{{ indicadoresSupervisores.kpis.porcentajePuntualidad }}%</div>
+          </div>
+        </div>
+        <div class="col-md-3 col-6">
+          <div class="p-2 px-3 rounded border bg-light">
+            <div class="small text-muted">Min. Tardanza Sup.</div>
+            <div class="fs-5 fw-bold text-warning">{{ indicadoresSupervisores.kpis.minutosTardanza }} min</div>
+          </div>
+        </div>
+        <div class="col-md-3 col-6">
+          <div class="p-2 px-3 rounded border bg-light">
+            <div class="small text-muted">Faltas Sup.</div>
+            <div class="fs-5 fw-bold text-danger">{{ indicadoresSupervisores.kpis.faltas }}</div>
+          </div>
+        </div>
+        <div class="col-md-3 col-6">
+          <div class="p-2 px-3 rounded border bg-light">
+            <div class="small text-muted">Permisos Aprob.</div>
+            <div class="fs-5 fw-bold text-primary">{{ indicadoresSupervisores.kpis.permisosAprobados }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-hover align-middle small">
+          <thead class="table-light">
+            <tr>
+              <th>Supervisor</th>
+              <th>Área / Modalidad</th>
+              <th class="text-center">Puntuales</th>
+              <th class="text-center">Tardanzas</th>
+              <th class="text-center">Min. Tardanza (hh:mm)</th>
+              <th class="text-center">Faltas</th>
+              <th class="text-center">Permisos</th>
+              <th class="text-center">% Asistencia</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of indicadoresSupervisores.detalle">
+              <td class="fw-semibold">{{ item.usuario.nombres }} {{ item.usuario.apellidos }}</td>
+              <td>{{ item.usuario.area }} <span class="badge bg-info text-dark ms-1">{{ item.usuario.tipo_jornada }}</span></td>
+              <td class="text-center text-success fw-bold">{{ item.puntuales }}</td>
+              <td class="text-center text-warning fw-bold">{{ item.tardanzas }}</td>
+              <td class="text-center">
+                <span class="fw-semibold" [class.text-danger]="item.minutosTardanza > 0">{{ item.minutosTardanza }} min</span>
+                <span class="text-muted small"> ({{ item.tiempoDeuda }})</span>
+              </td>
+              <td class="text-center text-danger fw-bold">{{ item.faltas }}</td>
+              <td class="text-center text-primary fw-semibold">{{ item.permisosAprobados }}</td>
+              <td class="text-center">
+                <span class="badge"
+                      [ngClass]="{
+                        'bg-success': item.efectividad >= 90,
+                        'bg-warning text-dark': item.efectividad >= 75 && item.efectividad < 90,
+                        'bg-danger': item.efectividad < 75
+                      }">
+                  {{ item.efectividad }}%
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- BLOQUE 2: ACUMULADO ASESORES -->
+    <div>
+      <h6 class="fw-bold text-dark mb-2">
+        <i class="bi bi-people me-1"></i>Acumulado de Asesores
+      </h6>
+
+      <div class="row g-2 mb-3">
+        <div class="col-md-3 col-6">
+          <div class="p-2 px-3 rounded border bg-light">
+            <div class="small text-muted">Puntualidad Asesores</div>
+            <div class="fs-5 fw-bold text-success">{{ indicadoresAsesores.kpis.porcentajePuntualidad }}%</div>
+          </div>
+        </div>
+        <div class="col-md-3 col-6">
+          <div class="p-2 px-3 rounded border bg-light">
+            <div class="small text-muted">Min. Tardanza Asesores</div>
+            <div class="fs-5 fw-bold text-warning">{{ indicadoresAsesores.kpis.minutosTardanza }} min</div>
+          </div>
+        </div>
+        <div class="col-md-3 col-6">
+          <div class="p-2 px-3 rounded border bg-light">
+            <div class="small text-muted">Faltas Asesores</div>
+            <div class="fs-5 fw-bold text-danger">{{ indicadoresAsesores.kpis.faltas }}</div>
+          </div>
+        </div>
+        <div class="col-md-3 col-6">
+          <div class="p-2 px-3 rounded border bg-light">
+            <div class="small text-muted">Permisos Aprob.</div>
+            <div class="fs-5 fw-bold text-primary">{{ indicadoresAsesores.kpis.permisosAprobados }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-hover align-middle small">
+          <thead class="table-light">
+            <tr>
+              <th>Asesor</th>
+              <th>Modalidad</th>
+              <th class="text-center">Puntuales</th>
+              <th class="text-center">Tardanzas</th>
+              <th class="text-center">Min. Tardanza (hh:mm)</th>
+              <th class="text-center">Faltas</th>
+              <th class="text-center">Permisos</th>
+              <th class="text-center">% Asistencia</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of indicadoresAsesores.detalle">
+              <td class="fw-semibold">
+                {{ item.usuario.nombres }} {{ item.usuario.apellidos }}
+                <div class="small text-muted fw-normal" *ngIf="usuarioSesion?.rol === 'COORDINADOR_OPERACIONES' && item.usuario.supervisor_id">
+                  Sup: {{ obtenerUsuario(item.usuario.supervisor_id)?.nombres }} {{ obtenerUsuario(item.usuario.supervisor_id)?.apellidos }}
+                </div>
+              </td>
+              <td><span class="badge bg-info text-dark">{{ item.usuario.tipo_jornada }}</span></td>
+              <td class="text-center text-success fw-bold">{{ item.puntuales }}</td>
+              <td class="text-center text-warning fw-bold">{{ item.tardanzas }}</td>
+              <td class="text-center">
+                <span class="fw-semibold" [class.text-danger]="item.minutosTardanza > 0">{{ item.minutosTardanza }} min</span>
+                <span class="text-muted small"> ({{ item.tiempoDeuda }})</span>
+              </td>
+              <td class="text-center text-danger fw-bold">{{ item.faltas }}</td>
+              <td class="text-center text-primary fw-semibold">{{ item.permisosAprobados }}</td>
+              <td class="text-center">
+                <span class="badge"
+                      [ngClass]="{
+                        'bg-success': item.efectividad >= 90,
+                        'bg-warning text-dark': item.efectividad >= 75 && item.efectividad < 90,
+                        'bg-danger': item.efectividad < 75
+                      }">
+                  {{ item.efectividad }}%
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

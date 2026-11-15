@@ -1,0 +1,106 @@
+<div class="row g-4">
+  <div class="col-md-5">
+    <div class="card card-corporativa p-4 bg-white h-100">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0">Tu Programación Semanal</h5>
+        <span class="badge bg-primary">{{ usuario.tipo_jornada }}</span>
+      </div>
+      <p class="text-muted small mb-3">
+        Semana vigente: <strong>{{ prog.fecha_inicio_semana }}</strong> al <strong>{{ prog.fecha_fin_semana }}</strong>
+      </p>
+
+      <ul class="list-group list-group-flush small mb-3">
+        <li class="list-group-item d-flex justify-content-between px-0">
+          <span class="text-muted">Rango Horario Asignado:</span>
+          <span class="fw-bold">{{ rango.etiqueta }}</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between px-0">
+          <span class="text-muted">Tolerancia de Ingreso:</span>
+          <span class="fw-semibold">{{ rango.tolerancia_minutos }} minutos</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between px-0">
+          <span class="text-muted">Límite Máximo Entrada / Salida:</span>
+          <span class="text-danger fw-semibold">+{{ rango.max_minutos_entrada }} min (1 hora)</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between px-0">
+          <span class="text-muted">Día de Descanso Rotativo:</span>
+          <span class="badge bg-secondary">{{ diasSemana[prog.dia_descanso] }}</span>
+        </li>
+      </ul>
+
+      <div class="alert alert-light border small mb-0">
+        <i class="bi bi-info-circle-fill text-primary me-1"></i>
+        <strong>Importante:</strong> Si no marcas entrada o salida hasta 1 hora después de tu hora programada, el sistema registrará <strong>FALTA</strong> automáticamente.
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-7">
+    <div class="card card-corporativa p-4 bg-white">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0"><i class="bi bi-fingerprint text-primary me-2"></i>Terminal de Marcación</h5>
+        <span class="badge bg-dark fs-6">{{ fechaHoy }}</span>
+      </div>
+
+      <div class="bg-light p-3 rounded border mb-3 d-flex align-items-center justify-content-between">
+        <div>
+          <label class="fw-semibold small d-block">Reloj de Marcación (Simulador para pruebas):</label>
+          <span class="text-muted small">Cambia la hora para probar Puntual, Tardanza o Bloqueo (+1h).</span>
+        </div>
+        <input type="time" class="form-control w-auto fw-bold" [(ngModel)]="horaSimulada">
+      </div>
+
+      <div *ngIf="mensajeAlerta" class="alert alert-{{ tipoAlerta }} py-2">
+        {{ mensajeAlerta }}
+      </div>
+
+      <div *ngIf="esDiaDescanso" class="alert alert-warning">
+        <i class="bi bi-calendar-x me-2"></i>Hoy es tu día de descanso programado ({{ diasSemana[prog.dia_descanso] }}).
+      </div>
+
+      <div class="row g-3 my-2">
+        <div class="col-sm-6">
+          <button class="btn btn-success w-100 py-3 fw-bold"
+                  [disabled]="esDiaDescanso || !!asistenciaHoy"
+                  (click)="marcarIngreso()">
+            <i class="bi bi-box-arrow-in-right fs-4 d-block mb-1"></i>
+            Marcar Entrada
+          </button>
+        </div>
+        <div class="col-sm-6">
+          <button class="btn btn-danger w-100 py-3 fw-bold"
+                  [disabled]="esDiaDescanso || !asistenciaHoy || !asistenciaHoy.hora_ingreso || !!asistenciaHoy.hora_salida || asistenciaHoy.estado === 'FALTA'"
+                  (click)="marcarSalida()">
+            <i class="bi bi-box-arrow-right fs-4 d-block mb-1"></i>
+            Marcar Salida
+          </button>
+        </div>
+      </div>
+
+      <hr>
+      <h6 class="fw-bold">Estado de tu jornada de hoy:</h6>
+      <div *ngIf="asistenciaHoy; else sinMarcacion" class="p-3 rounded bg-light border">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <span class="me-3"><strong>Entrada:</strong> {{ asistenciaHoy.hora_ingreso || 'No registrada' }}</span>
+            <span><strong>Salida:</strong> {{ asistenciaHoy.hora_salida || 'Pendiente' }}</span>
+          </div>
+          <span class="badge"
+                [ngClass]="{
+                  'bg-success': asistenciaHoy.estado === 'PUNTUAL',
+                  'bg-warning text-dark': asistenciaHoy.estado === 'TARDANZA',
+                  'bg-danger': asistenciaHoy.estado === 'FALTA'
+                }">
+            {{ asistenciaHoy.estado }}
+          </span>
+        </div>
+        <div *ngIf="asistenciaHoy.observacion_sistema" class="text-danger small mt-2">
+          <i class="bi bi-exclamation-octagon me-1"></i>{{ asistenciaHoy.observacion_sistema }}
+        </div>
+      </div>
+      <ng-template #sinMarcacion>
+        <p class="text-muted small mb-0">Aún no has registrado marcación en la fecha {{ fechaHoy }}.</p>
+      </ng-template>
+    </div>
+  </div>
+</div>

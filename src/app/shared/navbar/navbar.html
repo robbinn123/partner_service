@@ -1,0 +1,57 @@
+<nav class="navbar navbar-expand-lg navbar-dark navbar-partner shadow-sm">
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center" routerLink="/">
+      <img src="/partner_log_largo.png" alt="Partner Service" style="height: 38px; width: auto; object-fit: contain;">
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuPartnerService">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="menuPartnerService">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0" *ngIf="usuario">
+        <ng-container *ngIf="usuario.rol !== 'COORDINADOR_OPERACIONES'">
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/marcacion" routerLinkActive="active">
+              <i class="bi bi-clock me-1"></i>Marcación Diaria
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/mi-asistencia" routerLinkActive="active">
+              <i class="bi bi-calendar-check me-1"></i>Mi Historial
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/permisos" routerLinkActive="active">
+              <i class="bi bi-file-earmark-medical me-1"></i>Permisos
+            </a>
+          </li>
+        </ng-container>
+
+        <li class="nav-item" *ngIf="usuario.rol === 'SUPERVISOR' || usuario.rol === 'COORDINADOR_OPERACIONES'">
+          <a class="nav-link text-warning fw-semibold" routerLink="/panel-rrhh" routerLinkActive="active">
+            <i class="bi bi-people-fill me-1"></i>Panel Operaciones
+          </a>
+        </li>
+      </ul>
+
+      <div class="d-flex align-items-center gap-2 ms-auto">
+        <ng-container *ngIf="usuario; else botonesPublicos">
+          <span class="text-light small me-2">
+            <i class="bi bi-person-circle me-1"></i>{{ usuario.nombres }} {{ usuario.apellidos }}
+            <span class="badge bg-secondary ms-1">{{ usuario.rol }}</span>
+            <span class="badge bg-light text-dark ms-1" *ngIf="usuario.rol !== 'COORDINADOR_OPERACIONES'">
+              {{ usuario.tipo_jornada }}
+            </span>
+          </span>
+          <button class="btn btn-outline-light btn-sm" (click)="cerrarSesion()">
+            <i class="bi bi-box-arrow-right me-1"></i>Salir
+          </button>
+        </ng-container>
+        <ng-template #botonesPublicos>
+          <a routerLink="/login" class="btn btn-outline-light btn-sm">Iniciar Sesión</a>
+          <a routerLink="/registro" class="btn btn-warning btn-sm fw-semibold">Registrarse</a>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+</nav>

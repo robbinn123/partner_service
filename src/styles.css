@@ -1,1 +1,92 @@
-/* You can add global styles to this file, and also import other style files */
+:root {
+  /* Paleta Corporativa Partner Service */
+  --ps-teal: #2A7372;
+  --ps-teal-dark: #1A4B4A;
+  --ps-teal-light: #71A1A0;
+  --ps-orange: #F68B2A;
+  --ps-orange-hover: #e07618;
+
+  /* Sobrescritura global de variables Bootstrap 5 */
+  --bs-primary: #2A7372;
+  --bs-primary-rgb: 42, 115, 114;
+  --bs-warning: #F68B2A;
+  --bs-warning-rgb: 246, 139, 42;
+  --bs-dark: #1A4B4A;
+  --bs-dark-rgb: 26, 75, 74;
+  --bs-info: #71A1A0;
+  --bs-info-rgb: 113, 161, 160;
+}
+
+/* Tus reglas base integradas con la paleta */
+body {
+  background-color: #f3f7f7;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #2b3838;
+}
+
+.card-corporativa {
+  border: none;
+  border-top: 4px solid var(--ps-teal);
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(26, 75, 74, 0.08);
+}
+
+/* Botones principales (Verde Petróleo) */
+.btn-primary {
+  background-color: var(--ps-teal);
+  border-color: var(--ps-teal);
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+  background-color: var(--ps-teal-dark);
+  border-color: var(--ps-teal-dark);
+}
+
+.btn-outline-primary {
+  color: var(--ps-teal);
+  border-color: var(--ps-teal);
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--ps-teal);
+  border-color: var(--ps-teal);
+  color: #ffffff;
+}
+
+/* Botones de acento (Naranja) */
+.btn-warning {
+  background-color: var(--ps-orange);
+  border-color: var(--ps-orange);
+  color: #ffffff !important;
+}
+
+.btn-warning:hover,
+.btn-warning:focus {
+  background-color: var(--ps-orange-hover);
+  border-color: var(--ps-orange-hover);
+  color: #ffffff !important;
+}
+
+/* Enlaces, pestañas y barra superior */
+a {
+  color: var(--ps-teal);
+}
+
+a:hover {
+  color: var(--ps-teal-dark);
+}
+
+.nav-tabs .nav-link {
+  color: var(--ps-teal-dark);
+}
+
+.nav-tabs .nav-link.active {
+  color: var(--ps-teal);
+  border-bottom: 3px solid var(--ps-orange);
+  font-weight: 700;
+}
+
+.navbar-partner {
+  background: linear-gradient(90deg, var(--ps-teal-dark) 0%, var(--ps-teal) 100%);
+}
