@@ -111,7 +111,7 @@ export class AuthService {
 
   login(correo: string, password: string): Usuario | null {
     const user = this.getUsuarios().find(
-      u => u.correo.toLowerCase() === correo.toLowerCase() && u.password === password && u.activo
+      u => u.correo.toLowerCase() === correo.trim().toLowerCase() && u.password === password && u.activo
     );
     if (user) {
       if (typeof window !== 'undefined') {
